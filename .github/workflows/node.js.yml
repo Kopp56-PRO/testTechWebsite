@@ -36,8 +36,8 @@ jobs:
     - name: Change to Login Directory and Run start-servers.sh
       run: |
         cd Login
-        chmod +x start-servers.sh
-        ./start-servers.sh
+        chmod +x startservers.sh
+        ./startservers.sh
 
     - name: Install Project Dependencies
       run: npm ci
