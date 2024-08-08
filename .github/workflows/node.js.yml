@@ -1,4 +1,4 @@
-# This workflow will set up Node.js, install dependencies, build the source code, run tests, and perform additional setup steps.
+# This workflow will set up Node.js, install dependencies, build the source code, run tests, and execute a shell script.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Node.js CI
@@ -33,14 +33,13 @@ jobs:
         npm init -y
         npm install express cors
 
-    - name: Change to Login Directory and Run Node.js Scripts
+    - name: Change to Login Directory and Run start-servers.sh
       run: |
         cd Login
-        node server.js &
-        node usernameServer.js &
-        wait
+        chmod +x start-servers.sh
+        ./start-servers.sh
 
-    - name: Install Dependencies
+    - name: Install Project Dependencies
       run: npm ci
 
     - name: Build Project
