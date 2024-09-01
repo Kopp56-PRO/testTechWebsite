@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Request</title>
+    <link rel="stylesheet" href="vm-request.css"> <!-- Ensure path is correct -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> <!-- CryptoJS library -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Encrypt the message using AES-128-ECB
+            function encryptMessage(message, key) {
+                const encrypted = CryptoJS.AES.encrypt(message, CryptoJS.enc.Utf8.parse(key), {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                return encrypted.toString();
+            }
+
+            function getSubscriptionData() {
+                let subscriptionData = null;
+                try {
+                    const data = localStorage.getItem('subscription');
+                    if (data) {
+                        subscriptionData = JSON.parse(data);
+                        if (typeof subscriptionData === 'object' && subscriptionData !== null) {
+                            return subscriptionData.subscription;
+                        } else {
+                            console.error('Subscription data is not in expected format:', subscriptionData);
+                            return null;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to parse subscription data from local storage:', e);
+                }
+                return null;
+            }
+
+            function displaySubscriptionScreen() {
+                const noSubscriptionSection = document.getElementById('no-subscription-section');
+                const subscriptionSelectionSection = document.getElementById('subscription-selection-section');
+                const stepsContainer = document.getElementById('steps-container');
+                const subscriptionButtons = {
+                    'premium': document.getElementById('subscription-premium'),
+                    'starter': document.getElementById('subscription-starter'),
+                    'basic': document.getElementById('subscription-basic'),
+                    'learn': document.getElementById('subscription-learn')
+                };
+
+                const sizeButtons = {
+                    'for-learning': document.getElementById('size-for-learning'),
+                    'basic': document.getElementById('size-basic'),
+                    'standard': document.getElementById('size-standard'),
+                    'pro': document.getElementById('size-pro')
+                };
+
+                const subscriptionMessage = document.getElementById('subscription-message');
+                const requestButton = document.getElementById('request-button');
+                const nextStep1Button = document.getElementById('next-step-1');
+                const nextStep2Button = document.getElementById('next-step-2');
+                const submitRequestButton = document.getElementById('submit-request');
+                const confirmationMessage = document.getElementById('confirmation-message');
+
+                const userSubscription = getSubscriptionData();
+
+                if (userSubscription) {
+                    noSubscriptionSection.style.display = 'none';
+                    subscriptionSelectionSection.style.display = 'block';
+                    stepsContainer.style.display = 'block';
+
+                    // Show the appropriate subscription buttons based on userSubscription
+                    switch (userSubscription) {
+                        case 'premium':
+                            subscriptionButtons['premium'].style.display = 'inline-block';
+                            break;
+                        case 'starter':
+                            subscriptionButtons['starter'].style.display = 'inline-block';
+                            break;
+                        case 'basic':
+                            subscriptionButtons['basic'].style.display = 'inline-block';
+                            break;
+                        case 'learn':
+                            subscriptionButtons['learn'].style.display = 'inline-block';
+                            break;
+                        default:
+                            console.error('Unexpected subscription value:', userSubscription);
+                            break;
+                    }
+
+                    // Add event listeners to subscription buttons
+                    Object.keys(subscriptionButtons).forEach(key => {
+                        subscriptionButtons[key].addEventListener('click', () => {
+                            localStorage.setItem('selectedSubscription', key);
+                            document.getElementById('step-1').style.display = 'none';
+                            document.getElementById('step-2').style.display = 'block';
+                            handleSizeSelection();
+                        });
+                    });
+                } else {
+                    noSubscriptionSection.style.display = 'block';
+                    subscriptionMessage.textContent = "It looks like you don't have a subscription! If you got a subscription recently, try logging out and logging in again. Also check if your subscription is in the account you are logged in.";
+                    requestButton.disabled = false;
+                    requestButton.addEventListener('click', () => {
+                        // Redirect to subscription page or open a modal to request subscription
+                        window.location.href = '/subscriptions'; // Update with actual path to subscription page
+                    });
+                }
+            }
+
+            function handleSizeSelection() {
+                const availableSizes = {
+                    'learn': ['For Learning'],
+                    'starter': ['For Learning', 'Basic'],
+                    'standard': ['For Learning', 'Basic', 'Standard'],
+                    'premium': ['For Learning', 'Basic', 'Standard', 'Pro']
+                };
+
+                const sizeButtons = {
+                    'for-learning': document.getElementById('size-for-learning'),
+                    'basic': document.getElementById('size-basic'),
+                    'standard': document.getElementById('size-standard'),
+                    'pro': document.getElementById('size-pro')
+                };
+
+                // Disable all buttons initially
+                Object.values(sizeButtons).forEach(button => {
+                    button.disabled = true;
+                    button.addEventListener('mouseover', () => {
+                        if (button.disabled) {
+                            button.title = "Your subscription does not allow this size!";
+                        }
+                    });
+                });
+
+                // Enable size buttons based on subscription
+                const userSubscription = getSubscriptionData();
+                if (availableSizes[userSubscription]) {
+                    availableSizes[userSubscription].forEach(size => {
+                        sizeButtons[size.toLowerCase().replace(' ', '-')].disabled = false;
+                    });
+                }
+
+                Object.values(sizeButtons).forEach(button => {
+                    button.addEventListener('click', () => {
+                        localStorage.setItem('selectedSize', button.textContent);
+                        document.getElementById('step-2').style.display = 'none';
+                        document.getElementById('step-3').style.display = 'block';
+                    });
+                });
+
+                const submitRequestButton = document.getElementById('submit-request');
+                submitRequestButton.addEventListener('click', () => {
+                    const selectedOS = document.getElementById('os-select').value;
+                    const selectedSize = localStorage.getItem('selectedSize');
+                    const selectedSubscription = localStorage.getItem('selectedSubscription');
+
+                    // Construct the message
+                    const message = `subscription: ${selectedSubscription}\nsize: ${selectedSize}\nOperating System: ${selectedOS}`;
+
+                    // Encrypt the message
+                    const key = 'Techmachines12'; // 16 bytes key for AES-128
+                    const encryptedMessage = encryptMessage(message, key);
+
+                    // Create the mailto link
+                    const email = 'support@techmachines.onmicrosoft.com';
+                    const subject = 'VM Request';
+                    const body = encodeURIComponent(encryptedMessage);
+
+                    // Redirect to mailto link
+                    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+                });
+            }
+
+            // Initialize the page
+            displaySubscriptionScreen();
+        });
+    </script>
+</head>
+<body>
+    <div id="vm-request-container">
+        <h1>VM Request Page</h1>
+        
+        <!-- No Subscription Section -->
+        <div id="no-subscription-section" style="display: none;">
+            <p id="subscription-message"></p>
+            <button id="request-button" disabled>See Subscriptions</button>
+        </div>
+        
+        <!-- Subscription Selection Section -->
+        <div id="subscription-selection-section" style="display: none;">
+            <h2>Select Your Subscription</h2>
+            <button id="subscription-premium" class="subscription-button" style="display: none;">Premium</button>
+            <button id="subscription-starter" class="subscription-button" style="display: none;">Starter</button>
+            <button id="subscription-basic" class="subscription-button" style="display: none;">Basic</button>
+            <button id="subscription-learn" class="subscription-button" style="display: none;">Learn</button>
+        </div>
+        
+        <!-- Steps Container -->
+        <div id="steps-container" style="display: none;">
+            <!-- Step 1: Subscription Selection -->
+            <div id="step-1" class="step" style="display: none;">
+                <h2>Select Your Subscription</h2>
+                <select id="subscription-select">
+                    <!-- Options will be added dynamically based on the user's subscriptions -->
+                </select>
+                <button id="next-step-1">Next</button>
+            </div>
+            
+            <!-- Step 2: VM Size Selection -->
+            <div id="step-2" class="step" style="display: none;">
+                <h2>Select VM Size</h2>
+                <button id="size-for-learning" class="vm-size-button" disabled>For Learning</button>
+                <button id="size-basic" class="vm-size-button" disabled>Basic</button>
+                <button id="size-standard" class="vm-size-button" disabled>Standard</button>
+                <button id="size-pro" class="vm-size-button" disabled>Pro</button>
+                <button id="next-step-2" style="display: none;">Next</button>
+            </div>
+            
+            <!-- Step 3: OS Selection -->
+            <div id="step-3" class="step" style="display: none;">
+                <h2>Select Operating System</h2>
+                <select id="os-select">
+                    <option value="windows">Windows</option>
+                    <option value="linux">Linux</option>
+                    <option value="mac">MacOS</option>
+                </select>
+                <button id="submit-request">Submit Request</button>
+                <p id="confirmation-message"></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

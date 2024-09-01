@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Subscription</title>
+    <link rel="stylesheet" href="assign-subscription.css">
+</head>
+<body>
+    <header>
+        <h1>Assign Subscription</h1>
+    </header>
+    <main>
+        <div id="subscription-form">
+            <label for="subscription">Select Subscription:</label>
+            <select id="subscription">
+                <option value="none">None</option>
+                <option value="premium">Premium</option>
+                <option value="starter">Starter</option>
+                <option value="basic">Basic</option>
+                <option value="learn">Learn</option>
+            </select>
+            <button id="assign-button">Assign Subscription</button>
+            <p id="status-message"></p>
+        </div>
+    </main>
+    <script src="assign-subscription.js"></script>
+</body>
+</html>
