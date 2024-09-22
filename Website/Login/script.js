@@ -12,7 +12,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
     try {
         // First fetch: Check credentials with primary server
-        const loginResponse = await fetch('http://localhost:4000/login', {
+        const loginResponse = await fetch('https://test-tech-website.vercel.app/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             await new Promise(resolve => setTimeout(resolve, 5000));
 
             // Fetch username from the username server
-            const usernameResponse = await fetch('http://localhost:4002/get-username', {
+            const usernameResponse = await fetch('https://test-tech-website.vercel.app/get-username', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
