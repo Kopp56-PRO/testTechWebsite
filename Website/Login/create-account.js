@@ -9,7 +9,7 @@ document.getElementById('create-account-form').addEventListener('submit', async 
     document.getElementById('message').textContent = 'Creating account...';
 
     try {
-        const response = await fetch('https://test-tech-website.vercel.app/create-account', { // Update the URL if necessary
+        const response = await fetch('https://test-tech-website.vercel.app:4000/create-account', { // Update the URL if necessary
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, username })
